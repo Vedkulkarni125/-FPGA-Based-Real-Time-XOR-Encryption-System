@@ -1,0 +1,93 @@
+// ============================================================================
+//   FPGA Project: 8-Bit Real-Time XOR Encryption/Decryption System
+//   Board: Terasic DE2-115 (Cyclone IV E)
+// ============================================================================
+
+// --- Helper Module: 7-Segment Decoder for Hex Numbers (0-F) ---
+module bin_to_7seg (
+    input  [3:0] bin_in,
+    output reg [6:0] seg_out
+);
+    // Logic: 0 = Segment ON, 1 = Segment OFF (Active Low)
+    always @(*) begin
+        case (bin_in)
+            4'h0: seg_out = 7'b1000000; // 0
+            4'h1: seg_out = 7'b1111001; // 1
+            4'h2: seg_out = 7'b0100100; // 2
+            4'h3: seg_out = 7'b0110000; // 3
+            4'h4: seg_out = 7'b0011001; // 4
+            4'h5: seg_out = 7'b0010010; // 5
+            4'h6: seg_out = 7'b0000010; // 6
+            4'h7: seg_out = 7'b1111000; // 7
+            4'h8: seg_out = 7'b0000000; // 8
+            4'h9: seg_out = 7'b0010000; // 9
+            4'hA: seg_out = 7'b0001000; // A
+            4'hB: seg_out = 7'b0000011; // b
+            4'hC: seg_out = 7'b1000110; // C
+            4'hD: seg_out = 7'b0100001; // d
+            4'hE: seg_out = 7'b0000110; // E
+            4'hF: seg_out = 7'b0001110; // F
+            default: seg_out = 7'b1111111; // Off
+        endcase
+    end
+endmodule
+
+// --- Helper Module: Mode Indicator ('E' or 'd') ---
+module mode_display (
+    input mode_switch, // 0 = Encrypt, 1 = Decrypt
+    output reg [6:0] seg_out
+);
+    always @(*) begin
+        if (mode_switch == 1'b0)
+            seg_out = 7'b0000110; // 'E' for Encryption
+        else
+            seg_out = 7'b0100001; // 'd' for Decryption
+    end
+endmodule
+
+// --- Top Level Module: Bit Encryptor ---
+module bit_encryptor (
+    input  [17:0] SW,
+    output [17:0] LEDR,
+    output [6:0]  HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7
+);
+    // -- Internal Signals --
+    wire [7:0] input_data;  // Plaintext (Enc mode) or Ciphertext (Dec mode)
+    wire [7:0] key;         // The Secret Key
+    wire [7:0] output_data; // The Result
+    wire mode_sel;          // 0 = Encrypt, 1 = Decrypt
+
+    // 1. Assign Inputs from Switches
+    assign input_data = SW[7:0];   // Rightmost 8 switches
+    assign key        = SW[15:8];  // Middle 8 switches
+    assign mode_sel   = SW[17];    // Leftmost switch (Toggle)
+
+    // 2. The Encryption Logic (XOR)
+    //    Because XOR is reversible, this one line handles both modes!
+    assign output_data = input_data ^ key;
+
+    // 3. LED Outputs (Binary Visualization)
+    assign LEDR[7:0]   = input_data;  // Show Input on Right LEDs
+    assign LEDR[15:8]  = output_data; // Show Result on Left LEDs
+    assign LEDR[17]    = mode_sel;    // Show Mode status on far left LED
+    assign LEDR[16]    = 1'b0;        // Unused LED off
+
+    // 4. 7-Segment Outputs (Hexadecimal Visualization)
+    
+    // -- Input Display (Right Side) --
+    bin_to_7seg in_low  (input_data[3:0], HEX0);
+    bin_to_7seg in_high (input_data[7:4], HEX1);
+
+    // -- Result Display (Left Side) --
+    bin_to_7seg out_low  (output_data[3:0], HEX4);
+    bin_to_7seg out_high (output_data[7:4], HEX5);
+
+    // -- Mode Display (Far Left) --
+    mode_display mode_show (mode_sel, HEX7);
+
+    // -- Turn Off Unused Displays --
+    assign HEX2 = 7'b1111111;
+    assign HEX3 = 7'b1111111;
+    assign HEX6 = 7'b1111111;
+
+endmodule
