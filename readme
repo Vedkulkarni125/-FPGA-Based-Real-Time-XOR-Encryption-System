@@ -1,0 +1,23 @@
+Encryption (E) and Decryption (d) using the same XOR hardware block
+Real-Time Output on 7-segment displays and LEDs
+Verilog HDL implementation, synthesized using Intel Quartus Prime
+Hardware validation with multiple input–key test cases
+Modular design allowing easy extension for complex cryptographic systems
+Technical Highlights
+Implemented full datapath in Verilog HDL
+Designed clean module hierarchy: controller, XOR engine, display drivers
+Used HEX0–HEX7 and LED arrays for visualizing I/O and mode status
+Achieved instant encryption/decryption with no external computation
+Understood hardware constraints, timing closure, and pin mapping on Cyclone IV
+Learning Outcomes
+Strengthened digital logic and combinational hardware design
+Gained hands-on experience with FPGA development flow
+Improved understanding of fundamental cryptographic primitives
+Practiced debugging with SignalTap, simulation, and incremental compilation
+Future Enhancements
+LFSR-based random key generator
+UART/USB text encryption interface
+Migration to AES or DES hardware pipeline
+Integration with Nios II soft-core processor for hybrid architectures
+Tools & Technologies
+Verilog HDL, Quartus Prime, Cyclone IV (EP4CE115F29C7), FPGA Design Flow, Digital Logic, 7-Segment Display Control
